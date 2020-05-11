@@ -1,0 +1,22 @@
+{
+  "name": "jlinc-telegram",
+  "version": "1.0.0",
+  "description": "Telegram api wrapper library",
+  "main": ".eslintrc.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jlinclabs/jlinc-telegram.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jlinclabs/jlinc-telegram/issues"
+  },
+  "homepage": "https://github.com/jlinclabs/jlinc-telegram#readme",
+  "dependencies": {
+    "eslint": "^6.2.2"
+  }
+}
