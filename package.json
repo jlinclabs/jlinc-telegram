@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/jlinclabs/jlinc-telegram#readme",
   "dependencies": {
-    "eslint": "^6.2.2"
+    "eslint": "^6.2.2",
+    "@mtproto/core": "^3.1.1"
   }
 }
