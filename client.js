@@ -20,18 +20,11 @@ module.exports = class TelegramClient {
       return;
     }
 
-    return await new Promise((resolve, reject) => {
-      this.client = new MTProto({
-        api_id: this.apiID,
-        api_hash: this.apiHash,
-        test: this.test,
-        authKeys,
-      });
+    const initialSocketConnection = { connected: false };
 
-      const socket = Object.values(this.client.rpcs)[0].transport.socket;
-
-      const onOpen = () => {
-        this.client.updates.on('updates', ({ updates, users }) => {
+    return new Promise((resolve) => {
+      const onSocketOpen = updates => () => {
+        updates.on('updates', ({ updates, users }) => {
           const messages = getFormedMessagesFromUpdates({ updates, users });
           const messagesByChannelId = {};
           Object.values(messages).forEach(message => {
@@ -47,21 +40,26 @@ module.exports = class TelegramClient {
           }
         });
 
-        resolve();
+        if (!initialSocketConnection.connected) {
+          initialSocketConnection.connected = true;
+          resolve();
+        }
       };
 
-      const onError = (error) => {
-        reject(error);
+      const onSocketError = () => {
+        if (!initialSocketConnection.connected) {
+          reject();
+        }
       };
 
-      // Node socket uses different methods than browser socket
-      if (socket.on) {
-        socket.on('connect', onOpen);
-        socket.on('error', onError);
-      } else {
-        socket.onopen = onOpen;
-        socket.onerror = onError;
-      }
+      this.client = new MTProto({
+        api_id: this.apiID,
+        api_hash: this.apiHash,
+        test: this.test,
+        authKeys,
+        onSocketOpen,
+        onSocketError,
+      });
     });
   }
 
