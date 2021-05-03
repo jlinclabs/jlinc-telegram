@@ -1,6 +1,7 @@
 'use strict';
 
 const { MTProto } = require('@mtproto/core');
+const delay = require('delay');
 const {
   addUsersToMessages,
   getFormedMessagesFromUpdates,
@@ -102,8 +103,7 @@ module.exports = class TelegramClient {
   }
 
   async request(...args) {
-    return await this.client
-      .call(...args)
+    const result = await this.client.call(...args)
       .catch(async error => {
         const errorMessage = error.error_message || error.message || `${error}`;
         if (errorMessage.includes('_MIGRATE_')) {
@@ -116,10 +116,15 @@ module.exports = class TelegramClient {
         }
         if (errorMessage.includes('FLOOD_WAIT')) {
           const seconds = errorMessage.split('_WAIT_')[1];
-          throw new Error(`Our servers busy talking to Telegram. Please try again in ${seconds} seconds`);
+          await delay((seconds * 1000) + 1);
+          return await this.request(...args);
         }
         throw new Error(errorMessage);
       });
+
+    // this is a simple fix to stop telegram from throwing flood errors, this wont work if requests are done in parralel
+    await delay(50);
+    return result;
   }
 
   async checkIfLoggedIn(){
@@ -195,7 +200,7 @@ module.exports = class TelegramClient {
   }
 
   async createChannel({ title, about }) {
-    const { chats } = await this.request(
+    const createChannelResponse = await this.request(
       'channels.createChannel',
       {
         flags: 2,
@@ -204,6 +209,7 @@ module.exports = class TelegramClient {
       }
     );
 
+    const { chats } = createChannelResponse;
     const chat = chats.find(chat => chat.title === title);
     return {
       channelId: chat.id,
